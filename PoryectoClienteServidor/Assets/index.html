@@ -1,0 +1,354 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kiosco de turnos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a1a2e;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .kiosco {
+            background: #ffffff;
+            width: 380px;
+            max-width: 90%;
+            border-radius: 16px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+        }
+
+        .kiosco-header {
+            background: #E30613;
+            color: #ffffff;
+            padding: 24px 20px 20px;
+            text-align: center;
+        }
+
+            .kiosco-header h1 {
+                font-size: 26px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                margin-bottom: 4px;
+            }
+
+            .kiosco-header p {
+                font-size: 14px;
+                opacity: 0.9;
+            }
+
+        .kiosco-body {
+            padding: 28px 24px 32px;
+        }
+
+        /* ----- Formulario ----- */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #d0d0d0;
+            border-radius: 8px;
+            font-size: 16px;
+            color: #1a1a1a;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+            input[type="text"]:focus {
+                border-color: #E30613;
+            }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #E30613;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+            button:hover {
+                background: #c40010;
+            }
+
+            button:active {
+                transform: scale(0.98);
+            }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 12px;
+            color: #777;
+        }
+
+        /* ----- Ticket ----- */
+        .ticket {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .ticket-header {
+            font-size: 14px;
+            font-weight: 600;
+            color: #E30613;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ticket-numero {
+            font-size: 64px;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .ticket-nombre {
+            font-size: 22px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .ticket-fecha {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .ticket-linea {
+            border: none;
+            border-top: 1px dashed #ccc;
+            margin: 20px 0;
+        }
+
+        .ticket-estado {
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .estado-espera {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .estado-atendiendo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .btn-secundario {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #E30613;
+            border: 2px solid #E30613;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+
+            .btn-secundario:hover {
+                background: #E30613;
+                color: white;
+            }
+
+        .oculto {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosco">
+        <div class="kiosco-header">
+            <h1>Obtener turno</h1>
+            <p>Ingresa tu nombre para registrarte</p>
+        </div>
+        <div class="kiosco-body">
+            <!-- Formulario de registro -->
+            <div id="vistaFormulario">
+                <div class="form-group">
+                    <label>Nombre completo</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Escribe tu nombre..." />
+                </div>
+                <button id="botonRegistrar">Registrar</button>
+                <div class="footer-note">
+                    Tu turno se asignará automáticamente
+                </div>
+            </div>
+
+            <!-- Vista del ticket (oculta inicialmente) -->
+            <div id="vistaTicket" class="oculto">
+                <div class="ticket">
+                    <div class="ticket-header">Turno</div>
+                    <div class="ticket-numero" id="ticketNumero">00</div>
+                    <div class="ticket-nombre" id="ticketNombre">Nombre</div>
+                    <div class="ticket-fecha" id="ticketFecha">Fecha</div>
+                    <hr class="ticket-linea" />
+                    <div id="ticketEstado" class="ticket-estado estado-espera">En espera</div>
+                </div>
+                <button id="btnSacarOtro" class="btn-secundario oculto">Sacar otro turno</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const vistaFormulario = document.getElementById('vistaFormulario');
+            const vistaTicket = document.getElementById('vistaTicket');
+            const inputNombre = document.getElementById('nombre');
+            const btnRegistrar = document.getElementById('botonRegistrar');
+            const btnSacarOtro = document.getElementById('btnSacarOtro');
+
+            // Elementos del ticket
+            const ticketNumero = document.getElementById('ticketNumero');
+            const ticketNombre = document.getElementById('ticketNombre');
+            const ticketFecha = document.getElementById('ticketFecha');
+            const ticketEstado = document.getElementById('ticketEstado');
+
+            // ID persistente en localStorage
+            let idUsuario = localStorage.getItem('IdUsuario') || null;
+
+            // Al cargar la página, si ya existe ID, consultamos estado actual
+            window.addEventListener('DOMContentLoaded', async () => {
+                if (idUsuario) {
+                    try {
+                        const res = await fetch(`/tablero/estado?usuarioId=${encodeURIComponent(idUsuario)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            // Si el usuario tiene turno activo (En espera o Atendiendo), mostrar ticket
+                            if (data.usuarioEstado === 'En espera' || data.usuarioEstado === 'Atendiendo') {
+                                // Buscar su turno en la lista correspondiente
+                                let turnoUsuario = null;
+                                if (data.atendiendo && data.atendiendo.id === idUsuario) {
+                                    turnoUsuario = data.atendiendo;
+                                } else {
+                                    turnoUsuario = data.enEspera.find(t => t.id === idUsuario);
+                                }
+                                if (turnoUsuario) {
+                                    mostrarTicket(turnoUsuario.turno, turnoUsuario.nombre, data.usuarioEstado);
+                                    return;
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error al obtener estado inicial', err);
+                    }
+                }
+                // En cualquier otro caso, mostrar formulario
+                mostrarFormulario();
+            });
+
+            // Evento del botón Registrar
+            btnRegistrar.addEventListener('click', async () => {
+                const nombre = inputNombre.value.trim();
+                if (nombre === '') {
+                    alert('Por favor, ingresa un nombre.');
+                    return;
+                }
+
+                // Generar ID si no existe
+                if (!idUsuario) {
+                    idUsuario = crypto.randomUUID();
+                    localStorage.setItem('IdUsuario', idUsuario);
+                }
+
+                try {
+                    const res = await fetch('/tablero/registrar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ Nombre: nombre, Id: idUsuario })
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        // data debe incluir: turno, nombre, estado
+                        mostrarTicket(data.turno, data.nombre, data.estado);
+                    } else if (res.status === 409) {
+                        // Conflicto: ya tiene turno activo, obtener igual los datos
+                        const data = await res.json(); // Asumimos que el servidor devuelve igual el turno actual
+                        mostrarTicket(data.turno, data.nombre, data.estado);
+                    } else {
+                        alert('Error al solicitar turno.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Error de conexión.');
+                }
+            });
+
+            // Evento para "Sacar otro turno"
+            btnSacarOtro.addEventListener('click', () => {
+                // Volver al formulario
+                mostrarFormulario();
+            });
+
+            function mostrarTicket(numero, nombre, estado) {
+                ticketNumero.textContent = numero.toString().padStart(2, '0');
+                ticketNombre.textContent = nombre;
+                // Fecha actual formateada DD/MM/AAAA
+                const hoy = new Date();
+                const dia = hoy.getDate().toString().padStart(2, '0');
+                const mes = (hoy.getMonth() + 1).toString().padStart(2, '0');
+                const anio = hoy.getFullYear();
+                ticketFecha.textContent = `${dia}/${mes}/${anio}`;
+
+                // Estado visual
+                ticketEstado.textContent = estado === 'Atendiendo' ? 'Siendo atendido' : 'En espera';
+                ticketEstado.className = 'ticket-estado ' + (estado === 'Atendiendo' ? 'estado-atendiendo' : 'estado-espera');
+
+                // Mostrar botón "Sacar otro" solo si estado es Atendido o sin turno ("").
+                // Pero como aquí siempre estamos en espera o atendiendo, el botón no se ve.
+                // Si se quiere volver al formulario manualmente, se podría dejar siempre visible.
+                btnSacarOtro.classList.add('oculto'); // Por ahora oculto
+
+                // Alternar vistas
+                vistaFormulario.classList.add('oculto');
+                vistaTicket.classList.remove('oculto');
+            }
+
+            function mostrarFormulario() {
+                inputNombre.value = '';
+                vistaTicket.classList.add('oculto');
+                vistaFormulario.classList.remove('oculto');
+                btnSacarOtro.classList.add('oculto');
+            }
+        })();
+    </script>
+</body>
+</html>

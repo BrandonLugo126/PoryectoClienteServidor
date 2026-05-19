@@ -6,7 +6,9 @@ namespace PoryectoClienteServidor.Models.DTOs
 {
     public class Tablero
     {
-        public string TurnoQuien { get; set; } = null!;
+        public int Turno { get; set; }
+        public string TurnoNombre { get; set; } = null!;
+
         public string EstadoTurno { get; set; } = null!;
     }
 }

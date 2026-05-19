@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using PoryectoClienteServidor.Services;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -16,9 +17,11 @@ namespace PoryectoClienteServidor
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly TableroService service;
         public MainWindow()
         {
             InitializeComponent();
+            service = new TableroService();
         }
     }
 }
