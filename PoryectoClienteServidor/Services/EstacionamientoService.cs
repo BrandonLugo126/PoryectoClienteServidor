@@ -4,21 +4,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace PoryectoClienteServidor.Services
 {
-    public class TableroService
+    public class EstacionamientoService
     {
         private HttpListener servidor;
-        public List<UsuarioDTO> EnEspera { get; set; } = new List<UsuarioDTO>();
-        public UsuarioDTO? Atendiendo { get; set; }
-        public List<UsuarioDTO> Átendidos { get; set; } = new List<UsuarioDTO>();
+        public int[] LugaresDeEstacionamiento { get; set; } = new int[10];
+        public int LugaresLibres { get; set; } = 10;
+        public EstacionDTO? Estacionar { get; set; }
         public event Action? TableroActualizado;
         public bool Activo;
-        public TableroService()
+        public EstacionamientoService()
         {
             servidor = new HttpListener();
-            servidor.Prefixes.Add("http://localhost:5100/tablero/");
+            servidor.Prefixes.Add("http://localhost:5100/Estacionamiento/");
             Iniciar();
         }
         public void Iniciar()
@@ -62,46 +63,32 @@ namespace PoryectoClienteServidor.Services
 
             try
             {
-                if (request.HttpMethod == "GET" && request.RawUrl == "/tablero/")
+                if (request.HttpMethod == "GET" && request.RawUrl == "/Estacionamiento/")
                 {
                     ServirArchivo(response, "index.html", "text/html");
-                }
-                if (request.HttpMethod == "GET" && request.RawUrl == "/tablero/operador")
-                {
-                    ServirArchivo(response, "operador.html", "text/html");
-                }
-                else if (request.HttpMethod == "POST" && request.RawUrl == "/tablero/registrar")
+                }               
+                else if (request.HttpMethod == "POST" && request.RawUrl == "/Estacionamiento/Apartar")
                 {
                     byte[] buffer = new byte[request.ContentLength64];
                     request.InputStream.ReadExactly(buffer, 0, buffer.Length);
                     var json = Encoding.UTF8.GetString(buffer);
-                    var usuario = System.Text.Json.JsonSerializer.Deserialize<UsuarioDTO>(json);
-                    
+                    var usuario = JsonSerializer.Deserialize<EstacionDTO>(json);
 
-                    if (usuario == null)
+                    if (usuario != null)
                     {
-                        response.StatusCode = 400;
-                        response.Close();
-                    }
-                    else
-                    {
-                        usuario.Turno = usuario.Turno == 0 ? 1 : EnEspera.Max(u => u.Turno) + 1;
-                        usuario.Estado = "En espera";
-                        EnEspera.Add(usuario);
-                        TableroActualizado?.Invoke();
-                        response.StatusCode = 200;
-                        response.Close();
-                    }
-                }
-                else if (request.HttpMethod== "POST" && request.RawUrl == "/tablero/atender")
-                {
-                    if (EnEspera.Count > 0)
-                    {
-                        Atendiendo = EnEspera[0];
-                        EnEspera.RemoveAt(0);                      
-                        TableroActualizado?.Invoke();
-                        response.StatusCode = 200;
-                        response.Close();
+                        if (usuario.PosicionDeEstacionamiento>10 || usuario.PosicionDeEstacionamiento<1)
+                        {
+                            response.StatusCode = 400;
+                            response.Close();
+                        }
+                        else 
+                        {
+                            while (LugaresLibres == 0 || LugaresDeEstacionamiento[usuario.PosicionDeEstacionamiento - 1] == 1)
+                            {
+                                Thread.Sleep(500);
+                            }
+                            ApartarLugar(usuario);
+                        }                      
                     }
                     else
                     {
@@ -124,14 +111,17 @@ namespace PoryectoClienteServidor.Services
 
         }
 
-        public void Serealizar()
+        public void ApartarLugar(EstacionDTO estacionDTO)
         {
-
+            if (LugaresLibres > 0 && LugaresDeEstacionamiento[estacionDTO.PosicionDeEstacionamiento - 1] == 0)
+            {
+                LugaresDeEstacionamiento[estacionDTO.PosicionDeEstacionamiento - 1] = 1;
+                LugaresLibres--;
+                Estacionar = estacionDTO;
+                TableroActualizado?.Invoke();
+            }
         }
-        public void Deserealizar()
-        {
 
-        }
 
         private void ServirArchivo(HttpListenerResponse response, string nombreArchivo, string contentType)
         {

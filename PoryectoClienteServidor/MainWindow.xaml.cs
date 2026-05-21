@@ -17,11 +17,11 @@ namespace PoryectoClienteServidor
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly TableroService service;
+        private readonly EstacionamientoService service;
         public MainWindow()
         {
             InitializeComponent();
-            service = new TableroService();
+            service = new EstacionamientoService();
         }
     }
 }

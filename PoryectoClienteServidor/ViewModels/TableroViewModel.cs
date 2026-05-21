@@ -10,8 +10,8 @@ namespace PoryectoClienteServidor.ViewModels
     public class TableroViewModel
     { 
         public ICommand InciarCommand {  get; set; }
-        public readonly TableroService service;
-        public TableroViewModel(TableroService service) { 
+        public readonly EstacionamientoService service;
+        public TableroViewModel(EstacionamientoService service) { 
         
             InciarCommand = new RelayCommand(Iniciar);
             this.service = service;
