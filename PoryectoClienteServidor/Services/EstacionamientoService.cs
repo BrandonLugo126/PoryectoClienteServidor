@@ -66,7 +66,7 @@ namespace PoryectoClienteServidor.Services
                 if (request.HttpMethod == "GET" && request.RawUrl == "/Estacionamiento/")
                 {
                     ServirArchivo(response, "index.html", "text/html");
-                }               
+                }
                 else if (request.HttpMethod == "POST" && request.RawUrl == "/Estacionamiento/Apartar")
                 {
                     byte[] buffer = new byte[request.ContentLength64];
@@ -76,19 +76,44 @@ namespace PoryectoClienteServidor.Services
 
                     if (usuario != null)
                     {
-                        if (usuario.PosicionDeEstacionamiento>10 || usuario.PosicionDeEstacionamiento<1)
+                        if (usuario.PosicionDeEstacionamiento > 10 || usuario.PosicionDeEstacionamiento < 1)
                         {
                             response.StatusCode = 400;
                             response.Close();
                         }
-                        else 
+                        else
                         {
                             while (LugaresLibres == 0 || LugaresDeEstacionamiento[usuario.PosicionDeEstacionamiento - 1] == 1)
                             {
                                 Thread.Sleep(500);
                             }
                             ApartarLugar(usuario);
-                        }                      
+                        }
+                    }
+                    else
+                    {
+                        response.StatusCode = 400;
+                        response.Close();
+                    }
+                }
+                else if (request.HttpMethod == "POST" && request.RawUrl == "/Estacionamiento/Desocupar")
+                {
+                   byte[] buffer = new byte[request.ContentLength64];
+                    request.InputStream.ReadExactly(buffer, 0, buffer.Length);
+                    var json = Encoding.UTF8.GetString(buffer);
+                    var usuario = JsonSerializer.Deserialize<EstacionDTO>(json);
+                    if (usuario != null)
+                    {
+                        if (usuario.PosicionDeEstacionamiento > 10 || usuario.PosicionDeEstacionamiento < 1)
+                        {
+                            response.StatusCode = 400;
+                            response.Close();
+                        }
+                        else
+                        {
+                           
+                          QuitarLugar(usuario);
+                        }
                     }
                     else
                     {
@@ -118,6 +143,15 @@ namespace PoryectoClienteServidor.Services
                 LugaresDeEstacionamiento[estacionDTO.PosicionDeEstacionamiento - 1] = 1;
                 LugaresLibres--;
                 Estacionar = estacionDTO;
+                TableroActualizado?.Invoke();
+            }
+        }
+        public void QuitarLugar(EstacionDTO estacionDTO)
+        {
+            if (LugaresDeEstacionamiento[estacionDTO.PosicionDeEstacionamiento - 1] == 1 && estacionDTO.Uid == Estacionar?.Uid)
+            {
+                LugaresDeEstacionamiento[estacionDTO.PosicionDeEstacionamiento - 1] = 0;
+                LugaresLibres++;
                 TableroActualizado?.Invoke();
             }
         }
