@@ -1,11 +1,10 @@
 ﻿<!DOCTYPE html>
-<html lang="es">
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estacionamiento · Long Polling</title>
+    <meta charset="utf-8" />
+    <title></title>
     <style>
-        /* Mismos estilos del panel visual, sin cambios */
         * {
             margin: 0;
             padding: 0;
@@ -13,289 +12,176 @@
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: sans-serif;
+            background-color: #151D2A;
         }
+
+        header {
+            background-color: #212936;
+            text-align: start;
+        }
+
+            header h1 {
+                color: #FFFFFF;
+                padding: 5px;
+                font-size: 2rem;
+            }
 
         .panel {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            padding: 32px;
-            width: 100%;
-            max-width: 680px;
+            padding-top: 10px;
+        }
+
+        .panel h1 {
             text-align: center;
+            font-size: 1.6rem;
+            padding: 10px;
+            color: #FFFFFF;
         }
 
-        h1 {
-            font-size: 1.8rem;
-            color: #1a1a2e;
-            margin-bottom: 8px;
+        .espacios {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            text-align: center;
+            margin: 10px;
+            color: #FFFFFF;
+            gap: 10px;
         }
 
-        .subtitulo {
-            color: #666;
-            margin-bottom: 24px;
-            font-size: 0.95rem;
-        }
+            .espacios label:first-of-type {
+                background-color: #234930;
+                border: 2px solid #548C6C;
+                border-radius: 3px;
+                width: 100%;
+                font-size: 1.1rem;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            .espacios label:last-of-type {
+                background-color: #592327;
+                border: 2px solid #925253;
+                border-radius: 3px;
+                width: 100%;
+                font-size: 1.1rem;
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
 
         .estacionamiento {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 16px;
-            margin-bottom: 28px;
+            text-align: center;
+            margin: 10px;
+            margin-top: 25px;
+            color: #FFFFFF;
+            gap: 10px;
         }
 
-        .plaza {
-            aspect-ratio: 1 / 1;
-            border-radius: 16px;
-            cursor: pointer;
+        .plazaLibre {
+            background-color: #222A37;
+            border: 2px solid #FFFFFF;
+            border-radius: 3px;
+            width: 100%;
+            height: 160px;
+            font-size: 1.1rem;
+            display: grid;
+            grid-template-rows: repeat(1, 1fr);
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 1.4rem;
-            color: white;
-            transition: transform 0.15s, box-shadow 0.15s;
-            user-select: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-            .plaza:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            }
-
-            .plaza.libre {
-                background: linear-gradient(145deg, #66bb6a, #43a047);
-            }
-
-            .plaza.ocupada {
-                background: linear-gradient(145deg, #ef5350, #d32f2f);
-            }
-
-            .plaza.mi-reserva {
-                background: linear-gradient(145deg, #ffa726, #fb8c00);
-                border: 3px solid #fff;
-                box-shadow: 0 0 20px rgba(255,167,38,0.6);
-            }
-
-            .plaza .numero {
-                font-size: 1.8rem;
-                font-weight: 800;
-                line-height: 1;
-            }
-
-            .plaza .estado {
-                font-size: 0.9rem;
-                font-weight: 500;
-                margin-top: 4px;
-            }
-
-        .resumen {
-            background: #f5f7fa;
-            border-radius: 14px;
-            padding: 16px 24px;
-            margin-bottom: 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-            .resumen .contador {
-                font-size: 1.2rem;
-                font-weight: 600;
-                color: #333;
-            }
-
-                .resumen .contador span {
-                    font-weight: 700;
-                    color: #2e7d32;
-                }
-
-        .barra-contenedor {
+        .plazaOcupada {
+            background-color: #5A2127;
+            border: 2px solid #DE6F7A;
+            border-radius: 3px;
             width: 100%;
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 8px;
-            overflow: hidden;
+            height: 160px;
+            font-size: 1.1rem;
+            display: grid;
+            grid-template-rows: repeat(1, 1fr);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .barra-llena {
-            height: 100%;
-            background: #f44336;
-            border-radius: 8px;
-            transition: width 0.3s;
+        .plazaTuLugar {
+            background-color: #5A3715;
+            border: 2px solid #DE9A58;
+            border-radius: 3px;
+            width: 100%;
+            height: 160px;
+            font-size: 1.1rem;
+            display: grid;
+            grid-template-rows: repeat(1, 1fr);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
-        .footer {
-            margin-top: 20px;
-            font-size: 0.75rem;
-            color: #999;
+        .numeroPlaza {
+            font-size: 2.4rem;
+            font-weight: bold;
         }
+
+        .estadoPlaza {
+            font-size: 1.5rem;
+        }
+
     </style>
 </head>
 <body>
-    <div class="panel">
-        <h1>🅿️ Aparta tu lugar</h1>
-        <p class="subtitulo">Solo puedes ocupar <strong>un</strong> lugar a la vez</p>
-
-        <div class="estacionamiento" id="estacionamiento"></div>
-
-        <div class="resumen">
-            <div>
-                <div class="contador">🚗 <span id="ocupadosCount">0</span> ocupadas</div>
-                <div class="contador">🟢 <span id="libresCount">10</span> libres</div>
-            </div>
-            <div style="flex: 1; margin-left: 24px;">
-                <div class="barra-contenedor">
-                    <div class="barra-llena" id="barra" style="width: 0%;"></div>
-                </div>
-            </div>
+    <header>
+        <h1>Reservacion de estacionamiento</h1>
+    </header>
+    <section class="panel">
+        <h1>Seleccione su lugar de estacionamiento</h1>
+        <div class="espacios">
+            <label>LUGARES DISPONIBLES: 10</label>
+            <label>LUGARES OCUPADOS: 0</label>
         </div>
-
-        <div class="footer">Los cambios se reflejan automáticamente en todos los dispositivos conectados.</div>
-    </div>
-
-    <script>
-        (function () {
-            // UID único del navegador
-            let uid = localStorage.getItem("uidEstacionamiento");
-            if (!uid) {
-                uid = crypto.randomUUID();
-                localStorage.setItem("uidEstacionamiento", uid);
-            }
-
-            const capacidadTotal = 10;
-            // Estado actual: array de 10, null = libre, string = UID
-            let lugares = Array(capacidadTotal).fill(null);
-
-            const contenedor = document.getElementById('estacionamiento');
-            const spanOcupados = document.getElementById('ocupadosCount');
-            const spanLibres = document.getElementById('libresCount');
-            const barra = document.getElementById('barra');
-
-            // Dibujar la grilla según el estado actual
-            function dibujarPlazas() {
-                contenedor.innerHTML = '';
-                for (let i = 0; i < capacidadTotal; i++) {
-                    const plaza = document.createElement('div');
-                    let clase = 'plaza ';
-                    let textoEstado = '';
-
-                    if (lugares[i] === uid) {
-                        clase += 'mi-reserva';
-                        textoEstado = 'TU LUGAR';
-                    } else if (lugares[i] !== null) {
-                        clase += 'ocupada';
-                        textoEstado = 'OCUPADO';
-                    } else {
-                        clase += 'libre';
-                        textoEstado = 'LIBRE';
-                    }
-
-                    plaza.className = clase;
-                    plaza.dataset.index = i;
-                    plaza.innerHTML = `<div class="numero">${i + 1}</div><div class="estado">${textoEstado}</div>`;
-
-                    plaza.addEventListener('click', () => manejarClick(i));
-                    contenedor.appendChild(plaza);
-                }
-            }
-
-            function actualizarUI() {
-                const ocupadasTotal = lugares.filter(l => l !== null).length;
-                const libres = capacidadTotal - ocupadasTotal;
-                spanOcupados.textContent = ocupadasTotal;
-                spanLibres.textContent = libres;
-                barra.style.width = (ocupadasTotal / capacidadTotal * 100) + '%';
-
-                const plazasDivs = document.querySelectorAll('.plaza');
-                plazasDivs.forEach((div, idx) => {
-                    let clase = 'plaza ';
-                    let texto = '';
-                    if (lugares[idx] === uid) {
-                        clase += 'mi-reserva';
-                        texto = 'TU LUGAR';
-                    } else if (lugares[idx] !== null) {
-                        clase += 'ocupada';
-                        texto = 'OCUPADO';
-                    } else {
-                        clase += 'libre';
-                        texto = 'LIBRE';
-                    }
-                    div.className = clase;
-                    div.querySelector('.estado').textContent = texto;
-                });
-            }
-
-            async function manejarClick(indice) {
-                // Si es mi reserva, liberar
-                if (lugares[indice] === uid) {
-                    await fetch("/Estacionamiento/Apartar", {
-                        method: "POST",
-                        body: JSON.stringify({ uid, posicion: indice + 1, accion: "liberar" }),
-                        headers: { "content-type": "application/json" }
-                    });
-                    // Después de liberar, refrescamos estado vía long polling
-                    return;
-                }
-                // Si está libre y no tengo otra reserva, intentar reservar
-                if (lugares[indice] === null && !lugares.includes(uid)) {
-                    // Esta petición puede tardar (long polling si no se puede)
-                    const respuesta = await fetch("/Estacionamiento/Apartar", {
-                        method: "POST",
-                        body: JSON.stringify({ uid, posicion: indice + 1, accion: "reservar" }),
-                        headers: { "content-type": "application/json" }
-                    });
-                    if (respuesta.ok) {
-                        const data = await respuesta.json();
-                        if (data.lugares) {
-                            lugares = data.lugares;
-                            dibujarPlazas();
-                            actualizarUI();
-                        }
-                    }
-                }
-            }
-
-            // Long polling pasivo: escucha cambios de estado para actualizar vista
-            async function escucharEstado() {
-                while (true) {
-                    try {
-                        const respuesta = await fetch(`/Estacionamiento/Estado?uid=${uid}`);
-                        if (!respuesta.ok) throw new Error("Error en long polling");
-                        const data = await respuesta.json();
-                        if (data.lugares) {
-                            lugares = data.lugares;
-                            dibujarPlazas();
-                            actualizarUI();
-                        }
-                    } catch (error) {
-                        console.error("Long polling error:", error);
-                        await new Promise(r => setTimeout(r, 3000));
-                    }
-                }
-            }
-
-            // Inicializar: pedir estado inicial (el servidor responde sin esperar si no ha cambiado, pero con nuestro
-            // código de /Estado esperará al primer cambio. Para obtener el estado inmediato podemos llamar una vez
-            // a /Apartar con acción "estado"? Mejor: confiamos en que el servidor en /Estado retorna inmediatamente
-            // si hay una versión > 0? No, siempre espera un cambio. Entonces necesitamos obtener estado inicial.
-            // Solución: el HTML puede asumir todo libre al principio y luego escucharEstado lo corregirá.
-            dibujarPlazas();
-            actualizarUI();
-            escucharEstado(); // Se queda escuchando cambios
-
-            // (Opcional) Para obtener el estado real inmediatamente, podemos hacer un POST ficticio "consultar"
-            // pero lo dejamos así; al primer cambio el long polling lo reflejará.
-        })();
-    </script>
+        <section class="estacionamiento">
+            <div class="plazaLibre">
+                <label class="numeroPlaza">1</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+            <div class="plazaOcupada">
+                <label class="numeroPlaza">2</label>
+                <label class="estadoPlaza">Ocupada</label>
+            </div>
+            <div class="plazaLibre">
+                <label class="numeroPlaza">3</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+            <div class="plazaTuLugar">
+                <label class="numeroPlaza">5</label>
+                <label class="estadoPlaza">Tu lugar</label>
+            </div>
+            <div class="plazaLibre">
+                <label class="numeroPlaza">4</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+            <div class="plazaLibre">
+                <label class="numeroPlaza">6</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+            <div class="plazaLibre">
+                <label class="numeroPlaza">7</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+            <div class="plazaLibre">
+                <label class="numeroPlaza">8</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+            <div class="plazaLibre">
+                <label class="numeroPlaza">9</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+            <div class="plazaLibre">
+                <label class="numeroPlaza">10</label>
+                <label class="estadoPlaza">Libre</label>
+            </div>
+        </section>
+    </section>
 </body>
 </html>
