@@ -137,7 +137,8 @@
     </section>
 
     <script>
-        const API_BASE = "http://localhost:5100/Estacionamiento/";
+        const url = "http://localhost:5100/Estacionamiento/";
+
         let uid = localStorage.getItem("estacionamiento_uid");
         if (!uid) {
             uid = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
@@ -147,124 +148,137 @@
         let pollingActive = true;
 
         const contenedor = document.getElementById("contenedorPlazas");
+        const lblLibres = document.getElementById("LugaresLibres");
+        const lblOcupados = document.getElementById("LugaresOcupados");
+
+        let plazas = [];
+
         function generarPlazas() {
-            contenedor.innerHTML = "";
+            while (contenedor.firstChild) {
+                contenedor.removeChild(contenedor.firstChild);
+            }
+            plazas = [];
             for (let i = 1; i <= 10; i++) {
                 const div = document.createElement("div");
                 div.className = "plazaLibre";
                 div.setAttribute("data-num", i);
-                div.innerHTML = `<label class="numeroPlaza">${i}</label><label class="estadoPlaza">Libre</label>`;
+
+                const labelNumero = document.createElement("label");
+                labelNumero.className = "numeroPlaza";
+                labelNumero.textContent = i.toString();
+
+                const labelEstado = document.createElement("label");
+                labelEstado.className = "estadoPlaza";
+                labelEstado.textContent = "Libre";
+
+                div.appendChild(labelNumero);
+                div.appendChild(labelEstado);
+
                 contenedor.appendChild(div);
+
+                plazas.push({
+                    div: div,
+                    labelEstado: labelEstado
+                });
             }
         }
         generarPlazas();
-
-        const lblLibres = document.getElementById("LugaresLibres");
-        const lblOcupados = document.getElementById("LugaresOcupados");
 
         function actualizarUI(estado) {
             lblLibres.textContent = `LUGARES DISPONIBLES: ${estado.Libres}`;
             lblOcupados.textContent = `LUGARES OCUPADOS: ${estado.Ocupados}`;
 
-            for (let i = 1; i <= 10; i++) {
-                const plaza = document.querySelector(`.estacionamiento [data-num='${i}']`);
-                if (!plaza) continue;
-                const estadoPlaza = estado.Lugares[i - 1]; // "libre", "ocupado", "tuyo"
-                const estadoLabel = plaza.querySelector(".estadoPlaza");
-                plaza.classList.remove("plazaLibre", "plazaOcupada", "plazaTuLugar");
+            for (let i = 0; i < plazas.length; i++) {
+                const plaza = plazas[i];
+                const estadoPlaza = estado.Lugares[i]; // "libre", "ocupado", "tuyo"
+                const labelEstado = plaza.labelEstado;
+
+                plaza.div.classList.remove("plazaLibre", "plazaOcupada", "plazaTuLugar");
+
                 if (estadoPlaza === "libre") {
-                    plaza.classList.add("plazaLibre");
-                    estadoLabel.textContent = "Libre";
+                    plaza.div.classList.add("plazaLibre");
+                    labelEstado.textContent = "Libre";
                 } else if (estadoPlaza === "ocupado") {
-                    plaza.classList.add("plazaOcupada");
-                    estadoLabel.textContent = "Ocupado";
+                    plaza.div.classList.add("plazaOcupada");
+                    labelEstado.textContent = "Ocupado";
                 } else if (estadoPlaza === "tuyo") {
-                    plaza.classList.add("plazaTuLugar");
-                    estadoLabel.textContent = "Tu lugar";
+                    plaza.div.classList.add("plazaTuLugar");
+                    labelEstado.textContent = "Tu lugar";
                 }
             }
         }
 
         async function obtenerEstado() {
-            try {
-                const resp = await fetch(`${API_BASE}Estado?uid=${encodeURIComponent(uid)}`);
-                if (resp.ok) {
-                    const data = await resp.json();
-                    actualizarUI(data);
-                } else {
-                    console.error("Error al obtener estado:", resp.status);
-                }
-            } catch (err) {
-                console.error("Error obteniendo estado:", err);
+
+            const resp = await fetch(`${url}Estado?uid=${encodeURIComponent(uid)}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                actualizarUI(data);
+            } else {
+                console.error("Error al obtener estado:", resp.status);
             }
+
         }
 
         async function apartar(posicion) {
-            try {
-                const resp = await fetch(`${API_BASE}Apartar`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ Uid: uid, PosicionDeEstacionamiento: posicion })
-                });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    actualizarUI(data);
-                } else if (resp.status === 409) {
-                    alert("Esta plaza ya está ocupada por otro usuario");
-                    await obtenerEstado(); // refrescar por si acaso
-                } else {
-                    alert("Error al apartar la plaza");
-                }
-            } catch (err) {
-                console.error("Error apartar:", err);
+
+            const resp = await fetch(`${url}Apartar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ Uid: uid, PosicionDeEstacionamiento: posicion })
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                actualizarUI(data);
+            } else if (resp.status === 409) {
+                alert("Esta plaza ya está ocupada por otro usuario");
+                await obtenerEstado();
+            } else {
+                alert("Error al apartar la plaza");
             }
+
         }
 
         async function desocupar(posicion) {
-            try {
-                const resp = await fetch(`${API_BASE}Desocupar`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ Uid: uid, PosicionDeEstacionamiento: posicion })
-                });
-                if (resp.ok) {
-                    const data = await resp.json();
-                    actualizarUI(data);
-                } else if (resp.status === 404) {
-                    alert("No puedes desocupar una plaza que no te pertenece");
-                    await obtenerEstado();
-                } else {
-                    alert("Error al desocupar");
-                }
-            } catch (err) {
-                console.error("Error desocupar:", err);
+
+            const resp = await fetch(`${url}Desocupar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ Uid: uid, PosicionDeEstacionamiento: posicion })
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                actualizarUI(data);
+            } else if (resp.status === 404) {
+                alert("No puedes desocupar una plaza que no te pertenece");
+                await obtenerEstado();
+            } else {
+                alert("Error al desocupar");
             }
+
         }
 
         async function esperarCambios() {
             while (pollingActive) {
-                try {
-                    const resp = await fetch(`${API_BASE}EsperarCambio?uid=${encodeURIComponent(uid)}`);
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        actualizarUI(data);
-                    } else {
-                        console.warn("Long polling respondió con error", resp.status);
-                        await new Promise(r => setTimeout(r, 2000));
-                    }
-                } catch (err) {
-                    console.error("Error en long polling:", err);
+
+                const resp = await fetch(`${url}EsperarCambio?uid=${encodeURIComponent(uid)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    actualizarUI(data);
+                } else {
                     await new Promise(r => setTimeout(r, 2000));
                 }
+
             }
         }
 
         contenedor.addEventListener("click", async (e) => {
-            const plaza = e.target.closest("[data-num]");
-            if (!plaza) return;
-            const num = parseInt(plaza.getAttribute("data-num"));
-            const esLibre = plaza.classList.contains("plazaLibre");
-            const esTuLugar = plaza.classList.contains("plazaTuLugar");
+            const plazaDiv = e.target.closest("[data-num]");
+            if (!plazaDiv) return;
+
+            const num = parseInt(plazaDiv.getAttribute("data-num"));
+            const esLibre = plazaDiv.classList.contains("plazaLibre");
+            const esTuLugar = plazaDiv.classList.contains("plazaTuLugar");
 
             if (esLibre) {
                 await apartar(num);

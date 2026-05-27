@@ -19,6 +19,8 @@ namespace PoryectoClienteServidor.Services
 
         public bool Activo { get; private set; }
 
+        public event Action<int>? LugarApartado,LugarDesocupado;
+
         public EstacionamientoService()
         {
             servidor = new HttpListener();
@@ -120,8 +122,8 @@ namespace PoryectoClienteServidor.Services
                     bool reservado = false;
                     lock (bloqueo)
                     {
-                        bool yaOcupado = lugaresOcupados.Any(l => l.PosicionDeEstacionamiento == solicitud.PosicionDeEstacionamiento);
-                        if (!yaOcupado)
+                        bool Ocupado = lugaresOcupados.Any(l => l.PosicionDeEstacionamiento == solicitud.PosicionDeEstacionamiento);
+                        if (!Ocupado)
                         {
                             lugaresOcupados.Add(new EstacionDTO
                             {
@@ -170,7 +172,7 @@ namespace PoryectoClienteServidor.Services
 
                     if (!liberado)
                     {
-                        response.StatusCode = 404; 
+                        response.StatusCode = 404;
                         response.Close();
                         return;
                     }
@@ -185,8 +187,10 @@ namespace PoryectoClienteServidor.Services
             }
             catch (Exception ex)
             {
+
                 response.StatusCode = 500;
                 response.Close();
+                throw new Exception(ex.Message);
             }
         }
 
