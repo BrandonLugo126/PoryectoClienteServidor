@@ -1,9 +1,8 @@
 ﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title></title>
+    <title>Estacionamiento - Long Polling</title>
     <style>
         * {
             margin: 0;
@@ -31,12 +30,12 @@
             padding-top: 10px;
         }
 
-        .panel h1 {
-            text-align: center;
-            font-size: 1.6rem;
-            padding: 10px;
-            color: #FFFFFF;
-        }
+            .panel h1 {
+                text-align: center;
+                font-size: 1.6rem;
+                padding: 10px;
+                color: #FFFFFF;
+            }
 
         .espacios {
             display: grid;
@@ -53,8 +52,7 @@
                 border-radius: 3px;
                 width: 100%;
                 font-size: 1.1rem;
-                padding-top: 10px;
-                padding-bottom: 10px;
+                padding: 10px;
             }
 
             .espacios label:last-of-type {
@@ -63,8 +61,7 @@
                 border-radius: 3px;
                 width: 100%;
                 font-size: 1.1rem;
-                padding-top: 10px;
-                padding-bottom: 10px;
+                padding: 10px;
             }
 
         .estacionamiento {
@@ -84,11 +81,10 @@
             width: 100%;
             height: 160px;
             font-size: 1.1rem;
-            display: grid;
-            grid-template-rows: repeat(1, 1fr);
             display: flex;
             flex-direction: column;
             justify-content: center;
+            cursor: pointer;
         }
 
         .plazaOcupada {
@@ -98,11 +94,10 @@
             width: 100%;
             height: 160px;
             font-size: 1.1rem;
-            display: grid;
-            grid-template-rows: repeat(1, 1fr);
             display: flex;
             flex-direction: column;
             justify-content: center;
+            cursor: not-allowed;
         }
 
         .plazaTuLugar {
@@ -112,11 +107,10 @@
             width: 100%;
             height: 160px;
             font-size: 1.1rem;
-            display: grid;
-            grid-template-rows: repeat(1, 1fr);
             display: flex;
             flex-direction: column;
             justify-content: center;
+            cursor: pointer;
         }
 
         .numeroPlaza {
@@ -127,61 +121,177 @@
         .estadoPlaza {
             font-size: 1.5rem;
         }
-
     </style>
 </head>
 <body>
     <header>
-        <h1>Reservacion de estacionamiento</h1>
+        <h1>Reservación de estacionamiento</h1>
     </header>
     <section class="panel">
         <h1>Seleccione su lugar de estacionamiento</h1>
         <div class="espacios">
-            <label>LUGARES DISPONIBLES: 10</label>
-            <label>LUGARES OCUPADOS: 0</label>
+            <label id="LugaresLibres">LUGARES DISPONIBLES: 0</label>
+            <label id="LugaresOcupados">LUGARES OCUPADOS: 0</label>
         </div>
-        <section class="estacionamiento">
-            <div class="plazaLibre">
-                <label class="numeroPlaza">1</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-            <div class="plazaOcupada">
-                <label class="numeroPlaza">2</label>
-                <label class="estadoPlaza">Ocupada</label>
-            </div>
-            <div class="plazaLibre">
-                <label class="numeroPlaza">3</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-            <div class="plazaTuLugar">
-                <label class="numeroPlaza">5</label>
-                <label class="estadoPlaza">Tu lugar</label>
-            </div>
-            <div class="plazaLibre">
-                <label class="numeroPlaza">4</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-            <div class="plazaLibre">
-                <label class="numeroPlaza">6</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-            <div class="plazaLibre">
-                <label class="numeroPlaza">7</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-            <div class="plazaLibre">
-                <label class="numeroPlaza">8</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-            <div class="plazaLibre">
-                <label class="numeroPlaza">9</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-            <div class="plazaLibre">
-                <label class="numeroPlaza">10</label>
-                <label class="estadoPlaza">Libre</label>
-            </div>
-        </section>
+        <section class="estacionamiento" id="contenedorPlazas"></section>
     </section>
+
+    <script>
+        const API_BASE = "http://localhost:5100/Estacionamiento/";
+        // Generar UID único (se guarda en localStorage)
+        let uid = localStorage.getItem("estacionamiento_uid");
+        if (!uid) {
+            uid = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+            localStorage.setItem("estacionamiento_uid", uid);
+        }
+
+        let pollingActive = true;
+
+        // Generar las 10 plazas dinámicamente
+        const contenedor = document.getElementById("contenedorPlazas");
+        function generarPlazas() {
+            contenedor.innerHTML = "";
+            for (let i = 1; i <= 10; i++) {
+                const div = document.createElement("div");
+                div.className = "plazaLibre";
+                div.setAttribute("data-num", i);
+                div.innerHTML = `<label class="numeroPlaza">${i}</label><label class="estadoPlaza">Libre</label>`;
+                contenedor.appendChild(div);
+            }
+        }
+        generarPlazas();
+
+        const lblLibres = document.getElementById("LugaresLibres");
+        const lblOcupados = document.getElementById("LugaresOcupados");
+
+        // Actualizar la interfaz con los datos recibidos del servidor
+        function actualizarUI(estado) {
+            // estado tiene propiedades: Libres, Ocupados, Lugares[]
+            lblLibres.textContent = `LUGARES DISPONIBLES: ${estado.Libres}`;
+            lblOcupados.textContent = `LUGARES OCUPADOS: ${estado.Ocupados}`;
+
+            for (let i = 1; i <= 10; i++) {
+                const plaza = document.querySelector(`.estacionamiento [data-num='${i}']`);
+                if (!plaza) continue;
+                const estadoPlaza = estado.Lugares[i - 1]; // "libre", "ocupado", "tuyo"
+                const estadoLabel = plaza.querySelector(".estadoPlaza");
+                // Remover clases anteriores
+                plaza.classList.remove("plazaLibre", "plazaOcupada", "plazaTuLugar");
+                if (estadoPlaza === "libre") {
+                    plaza.classList.add("plazaLibre");
+                    estadoLabel.textContent = "Libre";
+                } else if (estadoPlaza === "ocupado") {
+                    plaza.classList.add("plazaOcupada");
+                    estadoLabel.textContent = "Ocupado";
+                } else if (estadoPlaza === "tuyo") {
+                    plaza.classList.add("plazaTuLugar");
+                    estadoLabel.textContent = "Tu lugar";
+                }
+            }
+        }
+
+        // Obtener el estado actual (sin esperar)
+        async function obtenerEstado() {
+            try {
+                const resp = await fetch(`${API_BASE}Estado?uid=${encodeURIComponent(uid)}`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    actualizarUI(data);
+                } else {
+                    console.error("Error al obtener estado:", resp.status);
+                }
+            } catch (err) {
+                console.error("Error obteniendo estado:", err);
+            }
+        }
+
+        // Apartar una plaza
+        async function apartar(posicion) {
+            try {
+                const resp = await fetch(`${API_BASE}Apartar`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ Uid: uid, PosicionDeEstacionamiento: posicion })
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    actualizarUI(data);
+                } else if (resp.status === 409) {
+                    alert("Esta plaza ya está ocupada por otro usuario");
+                    await obtenerEstado(); // refrescar por si acaso
+                } else {
+                    alert("Error al apartar la plaza");
+                }
+            } catch (err) {
+                console.error("Error apartar:", err);
+            }
+        }
+
+        // Desocupar mi plaza
+        async function desocupar(posicion) {
+            try {
+                const resp = await fetch(`${API_BASE}Desocupar`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ Uid: uid, PosicionDeEstacionamiento: posicion })
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    actualizarUI(data);
+                } else if (resp.status === 404) {
+                    alert("No puedes desocupar una plaza que no te pertenece");
+                    await obtenerEstado();
+                } else {
+                    alert("Error al desocupar");
+                }
+            } catch (err) {
+                console.error("Error desocupar:", err);
+            }
+        }
+
+        // Long polling: esperar cambios en el servidor
+        async function esperarCambios() {
+            while (pollingActive) {
+                try {
+                    const resp = await fetch(`${API_BASE}EsperarCambio?uid=${encodeURIComponent(uid)}`);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        actualizarUI(data);
+                    } else {
+                        // Si hay error, esperar un momento y reintentar
+                        console.warn("Long polling respondió con error", resp.status);
+                        await new Promise(r => setTimeout(r, 2000));
+                    }
+                } catch (err) {
+                    console.error("Error en long polling:", err);
+                    await new Promise(r => setTimeout(r, 2000));
+                }
+            }
+        }
+
+        // Manejador de clics en las plazas
+        contenedor.addEventListener("click", async (e) => {
+            const plaza = e.target.closest("[data-num]");
+            if (!plaza) return;
+            const num = parseInt(plaza.getAttribute("data-num"));
+            const esLibre = plaza.classList.contains("plazaLibre");
+            const esTuLugar = plaza.classList.contains("plazaTuLugar");
+
+            if (esLibre) {
+                await apartar(num);
+            } else if (esTuLugar) {
+                if (confirm(`¿Liberar tu plaza número ${num}?`)) {
+                    await desocupar(num);
+                }
+            } else {
+                alert("Esta plaza está ocupada por otro usuario");
+            }
+        });
+
+        // Inicializar: obtener estado y empezar long polling
+        obtenerEstado().then(() => {
+            esperarCambios();
+        });
+    </script>
 </body>
 </html>
