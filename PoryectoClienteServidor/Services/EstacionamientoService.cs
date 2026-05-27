@@ -170,7 +170,7 @@ namespace PoryectoClienteServidor.Services
 
                     if (!liberado)
                     {
-                        response.StatusCode = 404; // No encontrado o no es suyo
+                        response.StatusCode = 404; 
                         response.Close();
                         return;
                     }
@@ -185,7 +185,6 @@ namespace PoryectoClienteServidor.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error procesando petición: {ex.Message}");
                 response.StatusCode = 500;
                 response.Close();
             }
