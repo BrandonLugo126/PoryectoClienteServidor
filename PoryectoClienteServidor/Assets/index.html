@@ -214,9 +214,7 @@
             if (resp.ok) {
                 const data = await resp.json();
                 actualizarUI(data);
-            } else {
-                console.error("Error al obtener estado:", resp.status);
-            }
+            } 
 
         }
 

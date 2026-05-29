@@ -88,7 +88,7 @@ namespace PoryectoClienteServidor.Services
                 else if (request.HttpMethod == "GET" && absolutePath == "/Estacionamiento/Estado")
                 {
                     string uid = request.QueryString["uid"] ?? "";
-                    EnviarEstadoCompleto(response, uid);
+                    EnviarEstado(response, uid);
                 }
                 else if (request.HttpMethod == "GET" && absolutePath == "/Estacionamiento/EsperarCambio")
                 {
@@ -103,7 +103,7 @@ namespace PoryectoClienteServidor.Services
                         if (actual != ultimoContador) break;
                         Thread.Sleep(500);
                     }
-                    EnviarEstadoCompleto(response, uid);
+                    EnviarEstado(response, uid);
                 }
                 else if (request.HttpMethod == "POST" && absolutePath == "/Estacionamiento/Apartar")
                 {
@@ -142,7 +142,7 @@ namespace PoryectoClienteServidor.Services
                         return;
                     }
 
-                    EnviarEstadoCompleto(response, solicitud.Uid);
+                    EnviarEstado(response, solicitud.Uid);
                 }
                 else if (request.HttpMethod == "POST" && absolutePath == "/Estacionamiento/Desocupar")
                 {
@@ -165,6 +165,7 @@ namespace PoryectoClienteServidor.Services
                         if (lugar != null && lugar.Uid == solicitud.Uid)
                         {
                             lugaresOcupados.Remove(lugar);
+
                             contadorCambios++;
                             liberado = true;
                         }
@@ -177,7 +178,7 @@ namespace PoryectoClienteServidor.Services
                         return;
                     }
 
-                    EnviarEstadoCompleto(response, solicitud.Uid);
+                    EnviarEstado(response, solicitud.Uid);
                 }
                 else
                 {
@@ -194,7 +195,7 @@ namespace PoryectoClienteServidor.Services
             }
         }
 
-        private void EnviarEstadoCompleto(HttpListenerResponse response, string uidCliente)
+        private void EnviarEstado(HttpListenerResponse response, string uidCliente)
         {
             var estado = new EstadoGeneralDTO();
             lock (bloqueo)
