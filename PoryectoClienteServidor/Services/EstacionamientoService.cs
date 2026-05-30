@@ -14,12 +14,13 @@ namespace PoryectoClienteServidor.Services
     {
         private HttpListener servidor;
         private readonly object bloqueo = new object();
-        private int contadorCambios = 0;          
-        private List<EstacionDTO> lugaresOcupados = new List<EstacionDTO>(); 
+        private int contadorCambios = 0;
+
+        public List<EstacionDTO> LugaresOcupados { get; set; } = new List<EstacionDTO>();
 
         public bool Activo { get; private set; }
 
-        public event Action<int>? LugarApartado,LugarDesocupado;
+        public event Action<int>? LugarApartado, LugarDesocupado;
 
         public EstacionamientoService()
         {
@@ -35,7 +36,10 @@ namespace PoryectoClienteServidor.Services
                 servidor.Start();
                 Activo = true;
 
-                Thread hilo = new Thread(EscucharPeticiones) { IsBackground = true };
+                Thread hilo = new Thread(EscucharPeticiones)
+                {
+                    IsBackground = true
+                };
                 hilo.Start();
             }
             catch (Exception ex)
@@ -57,12 +61,11 @@ namespace PoryectoClienteServidor.Services
                 try
                 {
                     var context = servidor.GetContext();
-                    Thread hiloPeticion = new Thread(() => ProcesarPeticion(context)) { IsBackground = true };
+                    Thread hiloPeticion = new Thread(() => ProcesarPeticion(context))
+                    {
+                        IsBackground = true
+                    };
                     hiloPeticion.Start();
-                }
-                catch (HttpListenerException) 
-                {
-                    
                 }
                 catch (Exception ex)
                 {
@@ -122,15 +125,16 @@ namespace PoryectoClienteServidor.Services
                     bool reservado = false;
                     lock (bloqueo)
                     {
-                        bool Ocupado = lugaresOcupados.Any(l => l.PosicionDeEstacionamiento == solicitud.PosicionDeEstacionamiento);
+                        bool Ocupado = LugaresOcupados.Any(l => l.PosicionDeEstacionamiento == solicitud.PosicionDeEstacionamiento);
                         if (!Ocupado)
                         {
-                            lugaresOcupados.Add(new EstacionDTO
+                            LugaresOcupados.Add(new EstacionDTO
                             {
                                 Uid = solicitud.Uid,
                                 PosicionDeEstacionamiento = solicitud.PosicionDeEstacionamiento
                             });
                             contadorCambios++;
+                            LugarApartado?.Invoke(solicitud.PosicionDeEstacionamiento);
                             reservado = true;
                         }
                     }
@@ -161,11 +165,11 @@ namespace PoryectoClienteServidor.Services
                     bool liberado = false;
                     lock (bloqueo)
                     {
-                        var lugar = lugaresOcupados.FirstOrDefault(l => l.PosicionDeEstacionamiento == solicitud.PosicionDeEstacionamiento);
+                        var lugar = LugaresOcupados.FirstOrDefault(l => l.PosicionDeEstacionamiento == solicitud.PosicionDeEstacionamiento);
                         if (lugar != null && lugar.Uid == solicitud.Uid)
                         {
-                            lugaresOcupados.Remove(lugar);
-
+                            LugaresOcupados.Remove(lugar);
+                            LugarDesocupado?.Invoke(solicitud.PosicionDeEstacionamiento);
                             contadorCambios++;
                             liberado = true;
                         }
@@ -202,7 +206,7 @@ namespace PoryectoClienteServidor.Services
             {
                 for (int i = 1; i <= 10; i++)
                 {
-                    var ocupante = lugaresOcupados.FirstOrDefault(l => l.PosicionDeEstacionamiento == i);
+                    var ocupante = LugaresOcupados.FirstOrDefault(l => l.PosicionDeEstacionamiento == i);
                     if (ocupante == null)
                         estado.Lugares[i - 1] = "libre";
                     else if (ocupante.Uid == uidCliente)

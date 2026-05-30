@@ -1,4 +1,5 @@
 ﻿using PoryectoClienteServidor.Services;
+using PoryectoClienteServidor.ViewModels;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,10 +19,14 @@ namespace PoryectoClienteServidor
     public partial class MainWindow : Window
     {
         private readonly EstacionamientoService service;
+        private readonly TableroViewModel vm;
         public MainWindow()
         {
             InitializeComponent();
             service = new EstacionamientoService();
+            vm = new TableroViewModel(service);
+            this.DataContext = vm;
+            
         }
     }
 }

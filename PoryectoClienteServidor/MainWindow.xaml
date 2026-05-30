@@ -4,11 +4,75 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PoryectoClienteServidor"
-        xmlns:vm="clr-namespace:PoryectoClienteServidor.ViewModels"
+        xmlns:vm="clr-namespace:PoryectoClienteServidor.ViewModels" d:DataContext="{d:DesignInstance Type=vm:TableroViewModel}"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-   
     <Grid>
-        <Button Command="{Binding IniciarCommand}" Content="Iniciar  Servidor" Background="Black" FontSize="20" Height="50" Width="200" Foreground="White"></Button>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Foreground="#FFFFFF" Background="#212936" 
+            HorizontalContentAlignment="Left" FontSize="25" Margin="0,0,0,5" >
+            Reservacion de estacionamiento
+        </Label>
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" Foreground="#FFFFFF" 
+                    Content="{Binding LugaresDesocupados}" 
+                       ContentStringFormat="LUGARES DISPONIBLES: {0}"
+                    BorderThickness="2" BorderBrush="#548C6C" Background="#234930" 
+                    HorizontalContentAlignment="Center" Margin="10,0,5,0"/>
+                <Label Grid.Column="1" Foreground="#FFFFFF" 
+                    Content="{Binding LugaresOcupados}"
+                    ContentStringFormat="LUGARES OCUPADOS: {0}"
+                    BorderThickness="2" BorderBrush="#925253" Background="#592327" 
+                    HorizontalContentAlignment="Center" Margin="5,0,10,0"/>
+            </Grid>
+
+            <ItemsControl Grid.Row="1"  Grid.ColumnSpan="1" Margin="0,5,0,0" ItemsSource="{Binding Estacionamientos}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="2" Columns="5"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderThickness="2">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="#222A37"/>
+                                    <Setter Property="BorderBrush" Value="White"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Estado}" Value="ocupado">
+                                            <Setter Property="Background" Value="#5A2127"/>
+                                            <Setter Property="BorderBrush" Value="#DE6F7A"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel VerticalAlignment="Center">
+                                <Label Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30" FontWeight="Bold"
+                        Content="{Binding Numero}"/>
+                                <Label HorizontalAlignment="Center" Foreground="White" FontSize="15"
+                        Content="{Binding Estado, Mode=OneWay}"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
     </Grid>
 </Window>
